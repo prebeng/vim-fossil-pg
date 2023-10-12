@@ -64,6 +64,10 @@ The default commands completes based on the following steps:
 Commands created based on g:fossil_sub_cmds, like |:Fdiff|, use completion
 steps 2. and 3. above.
 
+NOTE: The lists of options are auto generated from `fossil help -a -v`.
+      For fossil commands with sub commands, all options for any of the
+      sub commands is included.
+
 ----------------------------------------------------------------------------
 Plugin variables                                            *fossil-variables*
 

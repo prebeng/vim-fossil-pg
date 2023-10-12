@@ -1136,7 +1136,7 @@ def ListCandidates(keys: list<string>, prefix: string): list<string>
             matches += [key]
         endif
     endfor
-    return matches
+    return uniq(matches)
 enddef
 
 def FossilComplete(A: string, L: string, P: number): list<string>
