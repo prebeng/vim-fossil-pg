@@ -18,7 +18,7 @@ Please see |fossil-variables| for further customisation.
 
 For more information on fossil, see https://fossil-scm.org/.
 
-NOTE: If you cannot find this docuemnt with `:help fossil`, please run
+NOTE: If you cannot find this document with `:help fossil`, please run
       |:helptags| on the directory where this file resides.
 
 ----------------------------------------------------------------------------

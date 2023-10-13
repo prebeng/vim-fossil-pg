@@ -12,7 +12,7 @@ endif
 syn case match
 syn sync minlines=100
 
-" Comments can contain evrything below as well as a diff
+" Comments can contain everything below as well as a diff
 syn match  fossilComment      "^#.*" contains=TOP
 syn include @fossilDiff syntax/diff.vim
 syn region fossilDiff start="^\%(#\{78\}\|=\{66\}\)$" end="^$\|\%$" contains=@fossilDiff fold
@@ -43,7 +43,7 @@ syn match  fossilHelpNone       "=" contained containedin=fossilHelpParamArg
 " Fossil praise output, also works for annotate and blame
 syn match  fossilPraise         "^\x\+ \d\d\d\d-\d\d-\d\d \+[-_@.a-zA-Z0-9]\+" contains=fossilHash,fossilDate
 
-" Fossil all uses headres in places
+" Fossil all uses headers in places
 syn match  fossilStarLine       "^\*\{10,\} .* \*\+$"
 
 " File status information in alphabetical order (status, commit and others)
