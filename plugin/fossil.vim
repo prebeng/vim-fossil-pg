@@ -11,7 +11,7 @@ endif
 g:loaded_fossil = 1
 
 # To update FossilArgs below, copy all lines inside the if/endif and execute
-# them as a register (e.g. @" if copied without specifying a register).
+# them as a register.
 if 0
     :legacy let _FossilArgs_commands_ =<< trim EOI
     :silent g/^FossilArgs\[.* = FossilArgs\[/d  " Remove aliases
@@ -1093,6 +1093,15 @@ def ReadFossilOutput(line: number, ...args: list<string>)
     exec ':' .. line .. 'r!' .. BuildFossilCommand(args)
 enddef
 
+def ReRunCommand()
+    if exists("b:_fossil_cmd_")
+        var view = winsaveview()
+        :%d
+        exec ':0r!' .. b:_fossil_cmd_
+        call winrestview(view)
+    endif
+enddef
+
 # Function to run a fossil command in a buffer (use ! to just run command)
 def CaptureFossilOutput(splitcmd: string, mods: string, bang: string,
                         ...args: list<string>)
@@ -1117,7 +1126,8 @@ def CaptureFossilOutput(splitcmd: string, mods: string, bang: string,
             silent exec ':' .. cmd
         endif
         enew
-        silent exec ':0r!' ..  BuildFossilCommand(args)
+        b:_fossil_cmd_ = BuildFossilCommand(args)
+        silent exec ':0r!' .. b:_fossil_cmd_
         silent :0
         setlocal buftype=nofile bufhidden=wipe nomodified noswapfile
         setlocal filetype=fossil
@@ -1257,4 +1267,9 @@ if WantShortCommand('RF')
     command! -bar -nargs=* -range -complete=file RF {
         call ReadFossilOutput(<line2>, <f-args>)
     }
+endif
+
+command -bar FRefresh call ReRunCommand()
+if WantShortCommand('FR')
+    command -bar FR call ReRunCommand()
 endif

@@ -10,6 +10,7 @@ if exists("b:current_syntax")
 endif
 
 syn case match
+syn sync minlines=100
 
 " Comments can contain evrything below as well as a diff
 syn match  fossilComment      "^#.*" contains=TOP

@@ -52,6 +52,17 @@ Commands                                                     *fossil-commands*
         the current line, or the last line in {range}.  Tab completion of
         [arguments] is done as with |:Fossil|.
 
+:FRefresh                                                   *fossil-:FRefresh*
+        Command to refesh the window.  The commands is saved by |:Fossil|
+        and other commands as `b:_fossil_cmd_`.  If this variable does not
+        exist, this command does nothing.
+
+        To perform an auto-refresh of the output when swithing to a window
+        with a temporary |:Fossil| buffer, use e.g.
+>
+            :au BufEnter {} FRefresh
+<
+
 ----------------------------------------------------------------------------
 Tab completion                                             *fossil-completion*
 
@@ -86,7 +97,7 @@ command line (see |<q-mods>|).  The value, if not empty, must include a final
                                                    *ossil-g:fossil_short_cmds*
 The plugin will create short name versions of the commands, where e.g.
 >
-    :let g:fossil_split = ['F', 'CF', 'RF', 'SF', 'VF']
+    :let g:fossil_split = ['F', 'CF', 'RF', 'SF', 'VF', 'FR']
 <
 would create all of the possible short name commands:
 
@@ -95,6 +106,7 @@ would create all of the possible short name commands:
 :RF     As |:RFossil|, added if "RF" is in |g:fossil_short_cmds|      *fossil-:RF*
 :SF     As |:SFossil|, added if "SF" is in |g:fossil_short_cmds|      *fossil-:SF*
 :VF     As |:VFossil|, added if "VF" is in |g:fossil_short_cmds|      *fossil-:VF*
+:FR     As |:FRefresh|, added if "FR" is in |g:fossil_short_cmds|     *fossil-:FR*
 
                                                     *fossil-g:fossil_sub_cmds*
 If you set `g:fossil_sub_cmds` to a list of fossil sub commands, the plugin
