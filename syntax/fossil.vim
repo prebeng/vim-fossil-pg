@@ -43,6 +43,9 @@ syn match  fossilHelpNone       "=" contained containedin=fossilHelpParamArg
 " Fossil praise output, also works for annotate and blame
 syn match  fossilPraise         "^\x\+ \d\d\d\d-\d\d-\d\d \+[-_@.a-zA-Z0-9]\+" contains=fossilHash,fossilDate
 
+" Fossil all uses headres in places
+syn match  fossilStarLine       "^\*\{10,\} .* \*\+$"
+
 " File status information in alphabetical order (status, commit and others)
 syn match  fossilAdded          "\%(^\|# \)\s*\zsADDED \+\f\+\|\<ADDED\>"
 syn match  fossilAdded          "\%(^\|# \)\s*\zsADDED_BY_INTEGRATE \+\f\+\|\<ADDED_BY_INTEGRATE\>"
@@ -84,6 +87,7 @@ hi def link fossilHelpOptionArg Constant
 hi def link fossilHelpParam     fossilHelpOption
 hi def link fossilHelpParamArg  fossilHelpOptionArg
 hi def link fossilPraise        fossilUser
+hi def link fossilStarLine      Statement
 
 " File status information
 hi def link fossilAdded         fossilAddRm
