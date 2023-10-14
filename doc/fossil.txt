@@ -1,4 +1,4 @@
-*fossil.txt*    Fossil plugin for vim.  Last change: 2023 Oct 12
+*fossil.txt*    Fossil plugin for vim.  Last change: 2023 Oct 14
 
 Maintainer: Preben Guldberg <preben@guldberg.org>
 License:    MIT, see |fossil-plugin-license|.

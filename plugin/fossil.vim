@@ -1,6 +1,6 @@
 " Vim plugin for interacting with Fossil (https://fossil-scm.org).
 " Maintainer:	Preben Guldberg <preben@guldberg.org>
-" Last Change:	2023 Oct 12
+" Last Change:	2023 Oct 13
 " License:      MIT
 
 vim9script

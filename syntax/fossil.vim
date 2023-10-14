@@ -2,7 +2,7 @@
 " Language:	Fossil information (commit, status, timeline)
 " Maintainer:	Preben Guldberg <preben@guldberg.org>
 " Filenames:	N/A
-" Last Change:	2023 Oct 12
+" Last Change:	2023 Oct 14
 " License:      MIT
 
 if exists("b:current_syntax")
