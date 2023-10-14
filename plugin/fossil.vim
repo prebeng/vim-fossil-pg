@@ -1082,6 +1082,13 @@ def BuildFossilCommand(arglist: list<string>): string
     if exists('g:fossil_cmd')
         cmd = g:fossil_cmd
     endif
+    # TODO: Changing directory helps if you are not inside a checked out
+    # repository.  But doing it like this will mess with file name arguments.
+    #var dir = expand('%')
+    #if !empty(dir)
+    #    dir = fnamemodify(dir, ':p:h')
+    #    cmd = cmd .. ' --chdir ' .. shellescape(dir)
+    #endif
     for arg in arglist
         cmd = cmd .. ' ' .. arg
     endfor
@@ -1105,8 +1112,9 @@ enddef
 # Function to run a fossil command in a buffer (use ! to just run command)
 def CaptureFossilOutput(splitcmd: string, mods: string, bang: string,
                         ...args: list<string>)
+    var fslcmd = BuildFossilCommand(args)
     if bang == '!'
-        exec ':!' .. BuildFossilCommand(args)
+        exec ':!' .. fslcmd
     else
         var cmd = splitcmd
         if cmd == 'default'
@@ -1126,8 +1134,8 @@ def CaptureFossilOutput(splitcmd: string, mods: string, bang: string,
             silent exec ':' .. cmd
         endif
         enew
-        b:_fossil_cmd_ = BuildFossilCommand(args)
-        silent exec ':0r!' .. b:_fossil_cmd_
+        b:_fossil_cmd_ = fslcmd
+        silent exec ':0r!' .. fslcmd
         silent :0
         setlocal buftype=nofile bufhidden=wipe nomodified noswapfile
         setlocal filetype=fossil
