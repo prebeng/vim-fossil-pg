@@ -18,13 +18,10 @@ Please see |fossil-variables| for further customisation.
 
 For more information on fossil, see https://fossil-scm.org/.
 
-NOTE: If you cannot find this document with `:help fossil`, please run
-      |:helptags| on the directory where this file resides.
-
 ----------------------------------------------------------------------------
 Commands                                                     *fossil-commands*
 
-:[{mods}]Fossil[!] [arguments]                                *fossil-:Fossil*
+:[{mods}]Fossil[!] [arguments]                                       *:Fossil*
         Run a fossil command and capture the output in a temporary buffer.
         If the window is closed, or you swap to another buffer, the buffer
         is wiped out (|bufhidden|=wipe).
@@ -38,24 +35,24 @@ Commands                                                     *fossil-commands*
         output is not captured.  See |:Rfossil| for inserting the output in
         the current buffer.
 
-:[{mods}]CFossil[!] [arguments]                              *fossil-:CFossil*
+:[{mods}]CFossil[!] [arguments]                                     *:CFossil*
         As |:Fossil|, but the window is only split with {mods} (C for capture).
 
-:[{mods}]SFossil[!] [arguments]                              *fossil-:SFossil*
+:[{mods}]SFossil[!] [arguments]                                     *:SFossil*
         As |:Fossil|, adding |:split:| after any {mods} (S for split).
 
-:[{mods}]VFossil[!] [arguments]                              *fossil-:VFossil*
+:[{mods}]VFossil[!] [arguments]                                     *:VFossil*
         As |:Fossil|, adding |:vsplit:| after any {mods} (V for vsplit).
 
-:[{range}]RFossil [arguments]                                *fossil-:RFossil*
+:[{range}]RFossil [arguments]                                       *:RFossil*
         Read the output of a fossil command into the current buffer after
         the current line, or the last line in {range}.  Tab completion of
         [arguments] is done as with |:Fossil|.
 
-:FRefresh                                                   *fossil-:FRefresh*
-        Command to refesh the window.  The commands is saved by |:Fossil|
-        and other commands as `b:_fossil_cmd_`.  If this variable does not
-        exist, this command does nothing.
+:FRefresh                                                          *:FRefresh*
+        Refesh the window by rerunning the fossil command saved as
+        `b:_fossil_cmd_` by |:Fossil| and other commands.  If this variable
+        does not exist, this command does nothing.
 
         To perform an auto-refresh of the output when swithing to a window
         with a temporary |:Fossil| buffer, use e.g.
@@ -82,10 +79,10 @@ NOTE: The lists of options are auto generated from `fossil help -a -v`.
 ----------------------------------------------------------------------------
 Plugin variables                                            *fossil-variables*
 
-                                                         *fossil-g:fossil_cmd*
+                                                                *g:fossil_cmd*
 If set, use g:fossil_cmd instead of the default `fossil` to run commands.
 
-                                                       *fossil-g:fossil_split*
+                                                              *g:fossil_split*
 The value of `g:fossil_split` is added after any modifiers specified on the
 command line (see |<q-mods>|).  The value, if not empty, must include a final
 |:split| or |:vsplit|, e.g.
@@ -101,14 +98,14 @@ The plugin will create short name versions of the commands, where e.g.
 <
 would create all of the possible short name commands:
 
-:F      As |:Fossil|, added if "F" is in |g:fossil_short_cmds|         *fossil-:F*
+:F      As |:Fossil|, added if "F" is in |g:fossil_short_cmds|        *fossil-:F*
 :CF     As |:CFossil|, added if "CF" is in |g:fossil_short_cmds|      *fossil-:CF*
 :RF     As |:RFossil|, added if "RF" is in |g:fossil_short_cmds|      *fossil-:RF*
 :SF     As |:SFossil|, added if "SF" is in |g:fossil_short_cmds|      *fossil-:SF*
 :VF     As |:VFossil|, added if "VF" is in |g:fossil_short_cmds|      *fossil-:VF*
 :FR     As |:FRefresh|, added if "FR" is in |g:fossil_short_cmds|     *fossil-:FR*
 
-                                                    *fossil-g:fossil_sub_cmds*
+                                                           *g:fossil_sub_cmds*
 If you set `g:fossil_sub_cmds` to a list of fossil sub commands, the plugin
 will create custom commands.  For instance, if you set this in your |vimrc|,
 >
@@ -116,11 +113,11 @@ will create custom commands.  For instance, if you set this in your |vimrc|,
 <
 the following commands are created:
 
-:Fdiff      Equivalent to running `:Fossil diff`                 *fossil-:Fdiff*
-:CFdiff     Equivalent to running `:CFossil diff`               *fossil-:CFdiff*
-:RFdiff     Equivalent to running `:RFossil diff`               *fossil-:RFdiff*
-:SFdiff     Equivalent to running `:SFossil diff`               *fossil-:SFdiff*
-:VFdiff     Equivalent to running `:VFossil diff`               *fossil-:VFdiff*
+:Fdiff      Equivalent to running `:Fossil diff`                       *:Fdiff*
+:CFdiff     Equivalent to running `:CFossil diff`                      *:CFdiff*
+:RFdiff     Equivalent to running `:RFossil diff`                      *:RFdiff*
+:SFdiff     Equivalent to running `:SFossil diff`                      *:SFdiff*
+:VFdiff     Equivalent to running `:VFossil diff`                      *:VFdiff*
 
 ----------------------------------------------------------------------------
 Syntax highlighting                                            *fossil-syntax*
