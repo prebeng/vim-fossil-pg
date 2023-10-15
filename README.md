@@ -14,7 +14,7 @@ the output.  The following commands are available by default:
 - `:CFossil` (Capture Fossil) merely switches to the temporary buffer.
 - `:RFossil` reads in the output in the current buffer.
 
-All commands have tab completion based on `fossil help -a -v`.
+All commands have tab completion based on `fossil help -a -v` and filenames.
 
 Syntax highlighting is provided that works with `fossil commit`, `status`,
 `timeline`, `help` and to some extent with other commands.
@@ -25,7 +25,7 @@ The plugin is inspired by the [vim-fossil plugin][inspiration] by J Knight.
 
 ## Installation
 
-Using vim plugin managaers, use the [github mirror][github] with e.g.
+Vim pluging managers using get can use the [github mirror][github] with e.g.
 
 ```
     :Plug 'prebeng/vim-fossil-pg'

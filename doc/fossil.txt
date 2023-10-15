@@ -3,13 +3,11 @@
 Maintainer: Preben Guldberg <preben@guldberg.org>
 License:    MIT, see |fossil-plugin-license|.
 
-
 Introduction                                                          *fossil*
-
-The plugin provides a set of vim commands for capturing the output of fossil
-commands.  Captured output is generally captured in a temporary buffer (see
-|:Fossil|, |:CFossil|, |:SFossil| and |:VFossil|), but can also be inserted
-in the current buffer (see |:RFossil|).
+The plugin provides a set of vim commands for capturing the output of
+fossil commands.  Captured output is generally captured in a temporary
+buffer (see |:Fossil|, |:CFossil|, |:SFossil| and |:VFossil|), but can also
+be inserted in the current buffer (see |:RFossil|).
 
 Additional commands can be defined, e.g. `:Fdiff`, or `:Fstatus`, using
 the |g:fossil_sub_cmds| variable.
@@ -36,18 +34,17 @@ Commands                                                     *fossil-commands*
         the current buffer.
 
 :[{mods}]CFossil[!] [arguments]                                     *:CFossil*
-        As |:Fossil|, but the window is only split with {mods} (C for capture).
+        Capture version of |:Fossil|.  Only splits if using {mods}.
 
 :[{mods}]SFossil[!] [arguments]                                     *:SFossil*
-        As |:Fossil|, adding |:split:| after any {mods} (S for split).
+        Split version |:Fossil|, always adding |:split| agter any {mods}.
 
 :[{mods}]VFossil[!] [arguments]                                     *:VFossil*
-        As |:Fossil|, adding |:vsplit:| after any {mods} (V for vsplit).
+        Vsplit version |:Fossil|, always adding |:vsplit| agter any {mods}.
 
 :[{range}]RFossil [arguments]                                       *:RFossil*
         Read the output of a fossil command into the current buffer after
-        the current line, or the last line in {range}.  Tab completion of
-        [arguments] is done as with |:Fossil|.
+        the current line, or the last line in {range}.
 
 :FRefresh                                                          *:FRefresh*
         Refesh the window by rerunning the fossil command saved as
@@ -59,14 +56,13 @@ Commands                                                     *fossil-commands*
 >
             :au BufEnter {} FRefresh
 <
-
 ----------------------------------------------------------------------------
 Tab completion                                             *fossil-completion*
 
 The default commands completes based on the following steps:
 
 1. The first argument completes fossil command names.
-2. Arguemnts starting with `-` uses applicable fossil command options.
+2. Arguments starting with `-` uses applicable fossil command options.
 3. Other arguments completes file names using |glob()|.
 
 Commands created based on g:fossil_sub_cmds, like |:Fdiff|, use completion
@@ -91,19 +87,19 @@ command line (see |<q-mods>|).  The value, if not empty, must include a final
     :let g:fossil_split = 'vsplit'              " Like :VFossil
     :let g:fossil_split = 'belowright vsplit'   " Using a modifer
 <
-                                                   *ossil-g:fossil_short_cmds*
+                                                         *g:fossil_short_cmds*
 The plugin will create short name versions of the commands, where e.g.
 >
     :let g:fossil_split = ['F', 'CF', 'RF', 'SF', 'VF', 'FR']
 <
 would create all of the possible short name commands:
 
-:F      As |:Fossil|, added if "F" is in |g:fossil_short_cmds|        *fossil-:F*
-:CF     As |:CFossil|, added if "CF" is in |g:fossil_short_cmds|      *fossil-:CF*
-:RF     As |:RFossil|, added if "RF" is in |g:fossil_short_cmds|      *fossil-:RF*
-:SF     As |:SFossil|, added if "SF" is in |g:fossil_short_cmds|      *fossil-:SF*
-:VF     As |:VFossil|, added if "VF" is in |g:fossil_short_cmds|      *fossil-:VF*
-:FR     As |:FRefresh|, added if "FR" is in |g:fossil_short_cmds|     *fossil-:FR*
+:F      As |:Fossil|, added if "F" is in g:fossil_short_cmds        *fossil-:F*
+:CF     As |:CFossil|, added if "CF" is in g:fossil_short_cmds      *fossil-:CF*
+:RF     As |:RFossil|, added if "RF" is in g:fossil_short_cmds      *fossil-:RF*
+:SF     As |:SFossil|, added if "SF" is in g:fossil_short_cmds      *fossil-:SF*
+:VF     As |:VFossil|, added if "VF" is in g:fossil_short_cmds      *fossil-:VF*
+:FR     As |:FRefresh|, added if "FR" is in g:fossil_short_cmds     *fossil-:FR*
 
                                                            *g:fossil_sub_cmds*
 If you set `g:fossil_sub_cmds` to a list of fossil sub commands, the plugin
