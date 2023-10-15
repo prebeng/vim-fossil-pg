@@ -35,6 +35,7 @@ Commands                                                     *fossil-commands*
                                                *b:fossil_cmdline* *b:fossil_cmd*
         After creating the temporary buffer, the full command line is saved
         as `b:fossil_cmdline` and the first argument as `b:fossil_cmd`.
+        Additionally, the current directory is set to |getcwd()| using |:lcd|.
 
 :[{mods}]CFossil[!] [arguments]                                     *:CFossil*
         Capture version of |:Fossil|.  Only splits if using {mods}.
@@ -51,6 +52,9 @@ Commands                                                     *fossil-commands*
 
 :FRefresh                                                          *:FRefresh*
         Refesh the buffers content by running |b:fossil_cmdline|, if set.
+
+        The command is re-run in the directory that was current when the
+        buffer was created (see |b:fossil_cmdline|).
 
         To perform an auto-refresh when swithing to a window with a temporary
         |:Fossil| buffer, if containg specific fossil output, use e.g.
@@ -81,18 +85,19 @@ NOTE: The lists of options are auto generated from `fossil help -a -v`.
 ----------------------------------------------------------------------------
 Plugin variables                                            *fossil-variables*
 
+                                                              *g:fossil_chdir*
+If set, use `fossil info` to find the local-root for the current buffer and
+compare with the local-root for the current directory:
+
+1. If there is no local-root for the current buffer, show an error message.
+2. If there is no local-root for the current directory, or if it differs
+   from local-root for the current buffer, use `fossil --chdir ROOT` where
+   ROOT is the local-root for the current buffer.
+3. Otherwise, run fossil `without` --chdir.
+
                                                                 *g:fossil_cmd*
 If set, use g:fossil_cmd instead of the default `fossil` to run commands.
 
-                                                              *g:fossil_split*
-The value of `g:fossil_split` is added after any modifiers specified on the
-command line (see |<q-mods>|).  The value, if not empty, must include a final
-|:split| or |:vsplit|, e.g.
->
-    :let g:fossil_split = ''                    " Like :CFossil
-    :let g:fossil_split = 'vsplit'              " Like :VFossil
-    :let g:fossil_split = 'belowright vsplit'   " Using a modifer
-<
                                                          *g:fossil_short_cmds*
 The plugin will create short name versions of the commands, where e.g.
 >
@@ -107,6 +112,15 @@ would create all of the possible short name commands:
 :VF     As |:VFossil|, added if "VF" is in g:fossil_short_cmds      *fossil-:VF*
 :FR     As |:FRefresh|, added if "FR" is in g:fossil_short_cmds     *fossil-:FR*
 
+                                                              *g:fossil_split*
+The value of `g:fossil_split` is added after any modifiers specified on the
+command line (see |<q-mods>|).  The value, if not empty, must include a final
+|:split| or |:vsplit|, e.g.
+>
+    :let g:fossil_split = ''                    " Like :CFossil
+    :let g:fossil_split = 'vsplit'              " Like :VFossil
+    :let g:fossil_split = 'belowright vsplit'   " Using a modifer
+<
                                                            *g:fossil_sub_cmds*
 If you set `g:fossil_sub_cmds` to a list of fossil sub commands, the plugin
 will create custom commands.  For instance, if you set this in your |vimrc|,

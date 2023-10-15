@@ -1077,27 +1077,57 @@ def WantShortCommand(cmd: string): bool
 enddef
 
 # Build a fossil command
-def BuildFossilCommand(arglist: list<string>): string
-    var cmd = 'fossil'
+def BuildFossilCommand(arglist: list<string>): list<string>
+    var cmd = ['fossil']
     if exists('g:fossil_cmd')
-        cmd = g:fossil_cmd
+        cmd = [g:fossil_cmd]
     endif
-    # TODO: Changing directory helps if you are not inside a checked out
-    # repository.  But doing it like this will mess with file name arguments.
-    #var dir = expand('%')
-    #if !empty(dir)
-    #    dir = fnamemodify(dir, ':p:h')
-    #    cmd = cmd .. ' --chdir ' .. shellescape(dir)
-    #endif
-    for arg in arglist
-        cmd = cmd .. ' ' .. arg
-    endfor
-    return cmd
+    var fsl_dir = getcwd()
+    if exists("g:fossil_chdir")
+        var has_chdir = v:false
+        for arg in arglist
+            if arg =~# '^--chdir%\(=.*\)\=$'
+                has_chdir = v:true
+            endif
+        endfor
+        if !has_chdir
+            var rootpat = '^\%(.*\n\)\=local-root: *\(.\{-\}\)\n.*'
+            var cur_dir = fsl_dir
+            var chdir_dir = expand("%:p:h")
+            fsl_dir = ''
+            var chdir_args = ['--chdir', shellescape(chdir_dir)]
+            var chdir_txt = system(join(cmd + chdir_args + ['info'], ' '))
+            if v:shell_error == 0 && chdir_txt =~# rootpat
+                var use_chdir = v:true
+                var cur_txt = system(join(cmd + ['info'], ' '))
+                if v:shell_error == 0 && cur_txt =~# rootpat
+                    var chdir_root = substitute(chdir_txt, rootpat, '\1', '')
+                    var cur_root = substitute(cur_txt, rootpat, '\1', '')
+                    if cur_root == chdir_root
+                        fsl_dir = cur_dir
+                        use_chdir = v:false
+                    endif
+                endif
+                if use_chdir
+                    fsl_dir = chdir_dir
+                    cmd += chdir_args
+                endif
+            endif
+            if empty(fsl_dir)
+                echohl Error
+                echomsg "Could not find local-root (g:fossil_chdir is set)"
+            endif
+        endif
+    endif
+    return [fsl_dir, join(cmd + arglist, ' ')]
 enddef
 
 # Read fossil output into the current buffer
 def ReadFossilOutput(line: number, ...args: list<string>)
-    exec ':' .. line .. 'r!' .. BuildFossilCommand(args)
+    var [cwd, fslcmd] = BuildFossilCommand(args)
+    if !empty(cwd)
+        exec ':' .. line .. 'r!' .. fslcmd
+    endif
 enddef
 
 def ReRunCommand()
@@ -1112,8 +1142,10 @@ enddef
 # Function to run a fossil command in a buffer (use ! to just run command)
 def CaptureFossilOutput(splitcmd: string, mods: string, bang: string,
                         ...args: list<string>)
-    var fslcmd = BuildFossilCommand(args)
-    if bang == '!'
+    var [cwd, fslcmd] = BuildFossilCommand(args)
+    if empty(cwd)
+        return
+    elseif bang == '!'
         exec ':!' .. fslcmd
     else
         var cmd = splitcmd
@@ -1134,6 +1166,7 @@ def CaptureFossilOutput(splitcmd: string, mods: string, bang: string,
             silent exec ':' .. cmd
         endif
         enew
+        exec 'lcd ' .. cwd
         b:fossil_cmd = len(args) > 0 ? args[0] : ''
         b:fossil_cmdline = fslcmd
         silent exec ':0r!' .. fslcmd
