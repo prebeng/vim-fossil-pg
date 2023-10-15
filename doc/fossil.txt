@@ -32,6 +32,9 @@ Commands                                                     *fossil-commands*
         When [!] is used, the command is run as an external command and the
         output is not captured.  See |:Rfossil| for inserting the output in
         the current buffer.
+                                               *b:fossil_cmdline* *b:fossil_cmd*
+        After creating the temporary buffer, the full command line is saved
+        as `b:fossil_cmdline` and the first argument as `b:fossil_cmd`.
 
 :[{mods}]CFossil[!] [arguments]                                     *:CFossil*
         Capture version of |:Fossil|.  Only splits if using {mods}.
@@ -47,14 +50,17 @@ Commands                                                     *fossil-commands*
         the current line, or the last line in {range}.
 
 :FRefresh                                                          *:FRefresh*
-        Refesh the window by rerunning the fossil command saved as
-        `b:_fossil_cmd_` by |:Fossil| and other commands.  If this variable
-        does not exist, this command does nothing.
+        Refesh the buffers content by running |b:fossil_cmdline|, if set.
 
-        To perform an auto-refresh of the output when swithing to a window
-        with a temporary |:Fossil| buffer, use e.g.
+        To perform an auto-refresh when swithing to a window with a temporary
+        |:Fossil| buffer, if containg specific fossil output, use e.g.
 >
-            :au BufEnter {} FRefresh
+    :let g:au_fossil_referesh = ['changes', 'extra', 'status', 'timeline']
+    :au BufEnter {} if exists("b:fossil_cmd")
+                 \|   if index(g:au_fossil_referesh, b:fossil_cmd) != -1
+                 \|     FRefresh
+                 \|   fi
+                 \| endif
 <
 ----------------------------------------------------------------------------
 Tab completion                                             *fossil-completion*

@@ -1101,10 +1101,10 @@ def ReadFossilOutput(line: number, ...args: list<string>)
 enddef
 
 def ReRunCommand()
-    if exists("b:_fossil_cmd_")
+    if exists("b:fossil_cmdline")
         var view = winsaveview()
         :%d
-        exec ':0r!' .. b:_fossil_cmd_
+        exec ':0r!' .. b:fossil_cmdline
         call winrestview(view)
     endif
 enddef
@@ -1134,7 +1134,8 @@ def CaptureFossilOutput(splitcmd: string, mods: string, bang: string,
             silent exec ':' .. cmd
         endif
         enew
-        b:_fossil_cmd_ = fslcmd
+        b:fossil_cmd = len(args) > 0 ? args[0] : ''
+        b:fossil_cmdline = fslcmd
         silent exec ':0r!' .. fslcmd
         silent :0
         setlocal buftype=nofile bufhidden=wipe nomodified noswapfile
