@@ -1288,27 +1288,38 @@ def SetupFossilCommands(fslcmd: string = '')
     endfor
 enddef
 
+def CreateReadFossilCommand(cmd: string, fslcmd: string)
+    var compfun = 'file'
+    if empty(fslcmd)
+        compfun = 'customlist,FossilComplete'
+    elseif has_key(FossilArgs, fslcmd)
+        compfun = 'customlist,FossilCompleteF' .. fslcmd
+    endif
+    var vimcmd = ':command! -bar -range -nargs=* -complete=' .. compfun
+    vimcmd ..= ' ' .. cmd .. ' call ReadFossilOutput(<line2>'
+    if !empty(fslcmd)
+        vimcmd = vimcmd .. ', "' .. fslcmd .. '"'
+    endif
+    vimcmd = vimcmd .. ', <f-args>)'
+    exec vimcmd
+enddef
+
 #
 # Commands
 #
 
 SetupFossilCommands()
+CreateReadFossilCommand('RFossil', '')
 
 if exists('g:fossil_sub_cmds')
     for fslcmd in g:fossil_sub_cmds
         SetupFossilCommands(fslcmd)
+        CreateReadFossilCommand('RF' .. fslcmd, fslcmd)
     endfor
 endif
 
-command! -bar -nargs=* -range -complete=file RFossil {
-    # NOTE: Annoyingly, vim will use line 1 with ':0RFossil status'
-    call ReadFossilOutput(<line2>, <f-args>)
-}
-
 if WantShortCommand('RF')
-    command! -bar -nargs=* -range -complete=file RF {
-        call ReadFossilOutput(<line2>, <f-args>)
-    }
+    CreateReadFossilCommand('RF', '')
 endif
 
 command -bar FRefresh call ReRunCommand()
