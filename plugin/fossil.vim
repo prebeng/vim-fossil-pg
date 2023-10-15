@@ -1083,7 +1083,7 @@ def BuildFossilCommand(arglist: list<string>): list<string>
         cmd = [g:fossil_cmd]
     endif
     var fsl_dir = getcwd()
-    if exists("g:fossil_chdir")
+    if exists('g:fossil_chdir')
         var has_chdir = v:false
         for arg in arglist
             if arg =~# '^--chdir%\(=.*\)\=$'
@@ -1093,7 +1093,7 @@ def BuildFossilCommand(arglist: list<string>): list<string>
         if !has_chdir
             var rootpat = '^\%(.*\n\)\=local-root: *\(.\{-\}\)\n.*'
             var cur_dir = fsl_dir
-            var chdir_dir = expand("%:p:h")
+            var chdir_dir = expand('%:p:h')
             fsl_dir = ''
             var chdir_args = ['--chdir', shellescape(chdir_dir)]
             var chdir_txt = system(join(cmd + chdir_args + ['info'], ' '))
@@ -1115,7 +1115,7 @@ def BuildFossilCommand(arglist: list<string>): list<string>
             endif
             if empty(fsl_dir)
                 echohl Error
-                echomsg "Could not find local-root (g:fossil_chdir is set)"
+                echomsg 'Could not find local-root (g:fossil_chdir is set)'
             endif
         endif
     endif
@@ -1131,7 +1131,7 @@ def ReadFossilOutput(line: number, ...args: list<string>)
 enddef
 
 def ReRunCommand()
-    if exists("b:fossil_cmdline")
+    if exists('b:fossil_cmdline')
         var view = winsaveview()
         :%d
         exec ':0r!' .. b:fossil_cmdline
@@ -1249,13 +1249,13 @@ def CreateFossilCommand(splitcmd: string, cmd: string, fslcmd: string)
     elseif has_key(FossilArgs, fslcmd)
         compfun = 'customlist,FossilCompleteF' .. fslcmd
     endif
-    var vimcmd = ':command! -bang -bar -nargs=* -complete=' .. compfun .. ' ' .. cmd
-    vimcmd = vimcmd .. ' call CaptureFossilOutput("' .. splitcmd .. '"'
-    vimcmd = vimcmd .. ', <q-mods>, <q-bang>'
+    var vimcmd = ':command! -bang -bar -nargs=* -complete=' .. compfun
+    vimcmd ..= ' ' .. cmd .. ' call CaptureFossilOutput(''' .. splitcmd .. ''''
+    vimcmd ..= ', <q-mods>, <q-bang>'
     if !empty(fslcmd)
-        vimcmd = vimcmd .. ', "' .. fslcmd .. '"'
+        vimcmd ..= ', "' .. fslcmd .. '"'
     endif
-    vimcmd = vimcmd .. ', <f-args>)'
+    vimcmd ..= ', <f-args>)'
     exec vimcmd
 enddef
 
@@ -1298,9 +1298,9 @@ def CreateReadFossilCommand(cmd: string, fslcmd: string)
     var vimcmd = ':command! -bar -range -nargs=* -complete=' .. compfun
     vimcmd ..= ' ' .. cmd .. ' call ReadFossilOutput(<line2>'
     if !empty(fslcmd)
-        vimcmd = vimcmd .. ', "' .. fslcmd .. '"'
+        vimcmd ..= ', "' .. fslcmd .. '"'
     endif
-    vimcmd = vimcmd .. ', <f-args>)'
+    vimcmd ..= ', <f-args>)'
     exec vimcmd
 enddef
 
