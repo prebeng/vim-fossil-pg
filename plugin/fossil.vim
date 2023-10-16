@@ -1,6 +1,6 @@
 " Vim plugin for interacting with Fossil (https://fossil-scm.org).
 " Maintainer:	Preben Guldberg <preben@guldberg.org>
-" Last Change:	2023 Oct 15
+" Last Change:	2023 Oct 16
 " License:      MIT
 
 vim9script
@@ -1239,7 +1239,8 @@ def FossilComplete(A: string, L: string, P: number): list<string>
         endif
         return ListCandidates(FossilArgs[cmd] + FossilCommonArgs, A)
     endif
-    return glob(A .. '*', 0, 1, 1)
+    var files = glob(A .. '*', 0, 1, 1)
+    return map(files, 'isdirectory(v:val) ? v:val .. "/" : v:val')
 enddef
 
 def CreateFossilCommand(splitcmd: string, cmd: string, fslcmd: string)
