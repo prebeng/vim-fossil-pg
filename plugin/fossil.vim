@@ -1076,8 +1076,17 @@ def WantShortCommand(cmd: string): bool
     return index(g:fossil_short_cmds, cmd) != -1
 enddef
 
+def ExpandArg(index: number, arg: string): string
+    g:YYY ..= "\n" .. index .. ": '" .. arg .. "'"
+    if arg =~ '^\%(%\|#\d*\|<\a\+>\)\%(:[phtre]\)*$'
+        g:YYY ..= " -> '" .. expand(arg) .. "'"
+        return expand(arg)
+    endif
+    return arg
+enddef
+
 # Build a fossil command
-def BuildFossilCommand(arglist: list<string>): list<string>
+def BuildFossilCommand(arglist: list<string>, expand: bool): list<string>
     var cmd = ['fossil']
     if exists('g:fossil_cmd')
         cmd = [g:fossil_cmd]
@@ -1119,12 +1128,14 @@ def BuildFossilCommand(arglist: list<string>): list<string>
             endif
         endif
     endif
-    return [fsl_dir, join(cmd + arglist, ' ')]
+    g:YYY = 'EXPAND: ' .. expand
+    var args = expand ? map(arglist, function('ExpandArg')) : arglist
+    return [fsl_dir, join(cmd + args, ' ')]
 enddef
 
 # Read fossil output into the current buffer
 def ReadFossilOutput(line: number, ...args: list<string>)
-    var [cwd, fslcmd] = BuildFossilCommand(args)
+    var [cwd, fslcmd] = BuildFossilCommand(args, v:false)
     if !empty(cwd)
         exec ':' .. line .. 'r!' .. fslcmd
     endif
@@ -1142,7 +1153,8 @@ enddef
 # Function to run a fossil command in a buffer (use ! to just run command)
 def CaptureFossilOutput(splitcmd: string, mods: string, bang: string,
                         ...args: list<string>)
-    var [cwd, fslcmd] = BuildFossilCommand(args)
+    var [cwd, fslcmd] = BuildFossilCommand(args, empty(bang))
+    g:XXX = 'bang: ' .. bang .. "\ncwd: " .. cwd .. "\nfslcmd" .. fslcmd
     if empty(cwd)
         return
     elseif bang == '!'

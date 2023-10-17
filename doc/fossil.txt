@@ -19,8 +19,12 @@ For more information on fossil, see https://fossil-scm.org/.
 ----------------------------------------------------------------------------
 Commands                                                     *fossil-commands*
 
-:[{mods}]Fossil[!] [arguments]                                       *:Fossil*
+:[{mods}]Fossil[!] [{arguments}]                                     *:Fossil*
         Run a fossil command and capture the output in a temporary buffer.
+        To allow using %, |<cfile>| in {arguments}, any {arguments} that
+        seem suitable for |expand()| are expanded before the temporary
+        buffer is created.
+
         If the window is closed, or you swap to another buffer, the buffer
         is wiped out (|bufhidden|=wipe).
 
@@ -37,16 +41,16 @@ Commands                                                     *fossil-commands*
         as `b:fossil_cmdline` and the first argument as `b:fossil_cmd`.
         Additionally, the current directory is set to |getcwd()| using |:lcd|.
 
-:[{mods}]CFossil[!] [arguments]                                     *:CFossil*
+:[{mods}]CFossil[!] [{arguments}]                                   *:CFossil*
         Capture version of |:Fossil|.  Only splits if using {mods}.
 
-:[{mods}]SFossil[!] [arguments]                                     *:SFossil*
+:[{mods}]SFossil[!] [{arguments}]                                   *:SFossil*
         Split version |:Fossil|, always adding |:split| agter any {mods}.
 
-:[{mods}]VFossil[!] [arguments]                                     *:VFossil*
+:[{mods}]VFossil[!] [{arguments}]                                   *:VFossil*
         Vsplit version |:Fossil|, always adding |:vsplit| agter any {mods}.
 
-:[{range}]RFossil [arguments]                                       *:RFossil*
+:[{range}]RFossil [{arguments}]                                     *:RFossil*
         Read the output of a fossil command into the current buffer after
         the current line, or the last line in {range}.
 
