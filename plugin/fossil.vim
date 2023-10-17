@@ -1160,6 +1160,12 @@ def CaptureFossilOutput(new_cmd: string, mods: string, bang: string,
         if empty(cmd)
             if exists('g:fossil_new_cmd')
                 cmd = g:fossil_new_cmd
+                if cmd =~ '|'
+                    # Do not use this with exec below
+                    echohl Error
+                    echomsg 'g:fossil_new_cmd may not include "|".'
+                    return
+                endif
             else
                 cmd = 'new'
             endif
@@ -1187,6 +1193,12 @@ def CaptureFossilOutput(new_cmd: string, mods: string, bang: string,
         silent :0
         setlocal buftype=nofile bufhidden=wipe nomodified noswapfile
         if exists('g:fossil_bufhidden')
+            if g:fossil_bufhidden !~ '^[a-z]*'
+                # Do not use this with exec below
+                echohl Error
+                echomsg 'g:fossil_bufhidden must be a single word'
+                return
+            endif
             exec 'setlocal bufhidden=' .. g:fossil_bufhidden
         endif
         setlocal filetype=fossil
@@ -1267,7 +1279,8 @@ def CreateFossilCommand(new_cmd: string, cmd: string, fslcmd: string)
     elseif has_key(FossilArgs, fslcmd)
         compfun = 'customlist,FossilCompleteF' .. fslcmd
     endif
-    var vimcmd = ':command! -bang -bar -nargs=* -complete=' .. compfun
+    # Include bar, so we don't get it included in fossil command args
+    var vimcmd = ':command! -bar -bang -nargs=* -complete=' .. compfun
     vimcmd ..= ' ' .. cmd .. ' call CaptureFossilOutput(''' .. new_cmd .. ''''
     vimcmd ..= ', <q-mods>, <q-bang>'
     if !empty(fslcmd)
@@ -1293,7 +1306,7 @@ def SetupFossilCommands(fslcmd: string = '')
         exec join(commcmd, "\n")
     endif
     # Now build the commands
-    var new_cmds = { '': '', 'C': 'enew', 'S': 'new', 'V': 'vert new' }
+    var new_cmds = { '': '', 'C': 'enew', 'S': 'hor new', 'V': 'vert new' }
     for [prefix, new_cmd] in items(new_cmds)
         var cmd = prefix .. 'F' .. fslcmd
         if empty(fslcmd)
@@ -1313,6 +1326,7 @@ def CreateReadFossilCommand(cmd: string, fslcmd: string)
     elseif has_key(FossilArgs, fslcmd)
         compfun = 'customlist,FossilCompleteF' .. fslcmd
     endif
+    # Include bar, so we don't get it included in fossil command args
     var vimcmd = ':command! -bar -range -nargs=* -complete=' .. compfun
     vimcmd ..= ' ' .. cmd .. ' call ReadFossilOutput(<line2>'
     if !empty(fslcmd)

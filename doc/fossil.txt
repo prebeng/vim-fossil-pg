@@ -37,7 +37,7 @@ Commands                                                     *fossil-commands*
         When [!] is used, the command is run as an external command and the
         output is not captured.  See |:Rfossil| for inserting the output in
         the current buffer.
-                                               *b:fossil_cmdline* *b:fossil_cmd*
+                                               *b:fossil_cmd* *b:fossil_cmdline*
         After creating the temporary buffer, the full command line is saved
         as `b:fossil_cmdline` and the first argument as `b:fossil_cmd`.
         The current directory is set using |:lcd| for any future |:FRefresh|.
@@ -106,7 +106,7 @@ If set, used for the |'bufhidden'| option for temporary buffers.
                                                                 *g:fossil_cmd*
 If set, use g:fossil_cmd instead of the default `fossil` to run commands.
 
-                                                              *g:fossil_new_cmd*
+                                                            *g:fossil_new_cmd*
 The value of `g:fossil_new_cmd` is used to control how |:Fossil| opens the
 temporary buffer.  The default is 'new'.
 >
