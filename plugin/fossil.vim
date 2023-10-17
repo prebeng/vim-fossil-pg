@@ -1177,13 +1177,16 @@ def CaptureFossilOutput(splitcmd: string, mods: string, bang: string,
         if !empty(cmd)
             silent exec ':' .. cmd
         endif
-        enew
+        silent exec 'new [' .. fslcmd .. ']'
         exec 'lcd ' .. cwd
         b:fossil_cmd = len(args) > 0 ? args[0] : ''
         b:fossil_cmdline = fslcmd
         silent exec ':0r!' .. fslcmd
         silent :0
         setlocal buftype=nofile bufhidden=wipe nomodified noswapfile
+        if exists('g:fossil_bufhidden')
+            exec 'setlocal bufhidden=' .. g:fossil_bufhidden
+        endif
         setlocal filetype=fossil
     endif
 enddef

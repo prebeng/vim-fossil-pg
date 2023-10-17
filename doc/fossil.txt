@@ -25,13 +25,13 @@ Commands                                                     *fossil-commands*
         seem suitable for |expand()| are expanded before the temporary
         buffer is created.
 
-        If the window is closed, or you swap to another buffer, the buffer
-        is wiped out (|bufhidden|=wipe).
-
         The window is split using |:split|, though this can be overridden by
         setting the |g:fossil_split| variable.
 
         See |<q-mods>| for possible {mods}.
+
+        When the buffer is no longer displayed in a window, the default is
+        to wipe it, though this can be tuned with |g:fossil_bufhidden|.
 
         When [!] is used, the command is run as an external command and the
         output is not captured.  See |:Rfossil| for inserting the output in
@@ -88,6 +88,9 @@ NOTE: The lists of options are auto generated from `fossil help -a -v`.
 
 ----------------------------------------------------------------------------
 Plugin variables                                            *fossil-variables*
+
+                                                          *g:fossil_bufhidden*
+If set, used for the |'bufhidden'| option for temporary buffers.
 
                                                               *g:fossil_chdir*
 If set, use `fossil info` to find the local-root for the current buffer and
