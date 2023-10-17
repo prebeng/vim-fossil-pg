@@ -1092,7 +1092,8 @@ def BuildFossilCommand(arglist: list<string>, expand: bool): list<string>
         cmd = [g:fossil_cmd]
     endif
     var fsl_dir = getcwd()
-    if exists('g:fossil_chdir')
+    # If both g:fossil_cmd and b:fossil_cmd exists, we've already been here
+    if exists('g:fossil_altroot') && !exists("b:fossil_cmd")
         var has_chdir = v:false
         for arg in arglist
             if arg =~# '^--chdir%\(=.*\)\=$'
@@ -1107,24 +1108,19 @@ def BuildFossilCommand(arglist: list<string>, expand: bool): list<string>
             var chdir_args = ['--chdir', shellescape(chdir_dir)]
             var chdir_txt = system(join(cmd + chdir_args + ['info'], ' '))
             if v:shell_error == 0 && chdir_txt =~# rootpat
-                var use_chdir = v:true
+                var chdir_root = substitute(chdir_txt, rootpat, '\1', '')
+                fsl_dir = chdir_root
                 var cur_txt = system(join(cmd + ['info'], ' '))
                 if v:shell_error == 0 && cur_txt =~# rootpat
-                    var chdir_root = substitute(chdir_txt, rootpat, '\1', '')
                     var cur_root = substitute(cur_txt, rootpat, '\1', '')
                     if cur_root == chdir_root
                         fsl_dir = cur_dir
-                        use_chdir = v:false
                     endif
-                endif
-                if use_chdir
-                    fsl_dir = chdir_dir
-                    cmd += chdir_args
                 endif
             endif
             if empty(fsl_dir)
                 echohl Error
-                echomsg 'Could not find local-root (g:fossil_chdir is set)'
+                echomsg 'Could not find local-root (g:fossil_altroot is set)'
             endif
         endif
     endif
@@ -1151,7 +1147,7 @@ def ReRunCommand()
 enddef
 
 # Function to run a fossil command in a buffer (use ! to just run command)
-def CaptureFossilOutput(splitcmd: string, mods: string, bang: string,
+def CaptureFossilOutput(new_cmd: string, mods: string, bang: string,
                         ...args: list<string>)
     var [cwd, fslcmd] = BuildFossilCommand(args, empty(bang))
     g:XXX = 'bang: ' .. bang .. "\ncwd: " .. cwd .. "\nfslcmd" .. fslcmd
@@ -1160,24 +1156,30 @@ def CaptureFossilOutput(splitcmd: string, mods: string, bang: string,
     elseif bang == '!'
         exec ':!' .. fslcmd
     else
-        var cmd = splitcmd
-        if cmd == 'default'
-            if exists('g:fossil_split')
-                cmd = g:fossil_split
+        var cmd = new_cmd
+        if empty(cmd)
+            if exists('g:fossil_new_cmd')
+                cmd = g:fossil_new_cmd
             else
-                cmd = 'split'
+                cmd = 'new'
             endif
         endif
         if !empty(mods)
-            if empty(cmd)
-                cmd = 'split'
-            endif
             cmd = mods .. ' ' .. cmd
         endif
-        if !empty(cmd)
-            silent exec ':' .. cmd
+        var bufidx = 0
+        var bufname = '[' .. fslcmd .. ']'
+        while bufname->bufexists()
+            ++bufidx
+            bufname = '[' .. bufidx .. ':' .. fslcmd .. ']'
+        endwhile
+        if cmd =~ 'enew$'
+            # No filename allowed, but hopefully status line updates are OK
+            silent exec cmd
+            silent exec ':file ' .. bufname
+        else
+            silent exec cmd .. ' ' .. bufname
         endif
-        silent exec 'new [' .. fslcmd .. ']'
         exec 'lcd ' .. cwd
         b:fossil_cmd = len(args) > 0 ? args[0] : ''
         b:fossil_cmdline = fslcmd
@@ -1258,7 +1260,7 @@ def FossilComplete(A: string, L: string, P: number): list<string>
     return map(files, 'isdirectory(v:val) ? v:val .. "/" : v:val')
 enddef
 
-def CreateFossilCommand(splitcmd: string, cmd: string, fslcmd: string)
+def CreateFossilCommand(new_cmd: string, cmd: string, fslcmd: string)
     var compfun = 'file'
     if empty(fslcmd)
         compfun = 'customlist,FossilComplete'
@@ -1266,7 +1268,7 @@ def CreateFossilCommand(splitcmd: string, cmd: string, fslcmd: string)
         compfun = 'customlist,FossilCompleteF' .. fslcmd
     endif
     var vimcmd = ':command! -bang -bar -nargs=* -complete=' .. compfun
-    vimcmd ..= ' ' .. cmd .. ' call CaptureFossilOutput(''' .. splitcmd .. ''''
+    vimcmd ..= ' ' .. cmd .. ' call CaptureFossilOutput(''' .. new_cmd .. ''''
     vimcmd ..= ', <q-mods>, <q-bang>'
     if !empty(fslcmd)
         vimcmd ..= ', "' .. fslcmd .. '"'
@@ -1291,16 +1293,16 @@ def SetupFossilCommands(fslcmd: string = '')
         exec join(commcmd, "\n")
     endif
     # Now build the commands
-    var splitcmds = { '': 'default', 'C': '', 'S': 'split', 'V': 'vsplit' }
-    for [prefix, splitcmd] in items(splitcmds)
+    var new_cmds = { '': '', 'C': 'enew', 'S': 'new', 'V': 'vert new' }
+    for [prefix, new_cmd] in items(new_cmds)
         var cmd = prefix .. 'F' .. fslcmd
         if empty(fslcmd)
             if WantShortCommand(prefix .. 'F')
-                CreateFossilCommand(splitcmd, prefix .. 'F', '')
+                CreateFossilCommand(new_cmd, prefix .. 'F', '')
             endif
             cmd = prefix .. 'Fossil'
         endif
-        CreateFossilCommand(splitcmd, cmd, fslcmd)
+        CreateFossilCommand(new_cmd, cmd, fslcmd)
     endfor
 enddef
 
