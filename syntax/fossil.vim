@@ -27,10 +27,12 @@ syn match  fossilPrivate        "^# PRIVATE BRANCH:" contained containedin=fossi
 syn match  fossilDryRun         "\%(# \)\=\zsDRY-RUN:" contained containedin=fossilComment
 syn match  fossilDate           "\<\d\d\d\d-\d\d-\d\d\>\%( \d\d:\d\d:\d\d\%( UTC\| [-+]\d\d:\d\d\)\=\)\="
 
-" Dates and hashes in timeline
+" Dates, hashes and status in timeline
 syn match  fossilHash           "\[\=\x\{10,\}\]\="
 syn match  fossilDate           "^=== \d\d\d\d-\d\d-\d\d ===$"
 syn match  fossilDate           "^\d\d:\d\d:\d\d \[\x\+\]" contains=fossilHash
+syn match  fossilTimelinePhase  "\*\%(BRANCH\|CURRENT\|FORK\|LEAF\|MERGE\|UNPUBLISHED\)\*"
+
 
 " Options in Fossil help output
 syn match  fossilHelpOption     "^\s\+\%(-\a\+\(|--\S\+\)\= \%( \|\S\+\)\=\)"
@@ -88,6 +90,7 @@ hi def link fossilHelpParam     fossilHelpOption
 hi def link fossilHelpParamArg  fossilHelpOptionArg
 hi def link fossilPraise        fossilUser
 hi def link fossilStarLine      Statement
+hi def link fossilTimelinePhase Statement
 
 " File status information
 hi def link fossilAdded         fossilAddRm
