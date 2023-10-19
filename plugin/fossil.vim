@@ -1077,54 +1077,60 @@ def WantShortCommand(cmd: string): bool
 enddef
 
 def ExpandArg(index: number, arg: string): string
-    g:YYY ..= "\n" .. index .. ": '" .. arg .. "'"
     if arg =~ '^\%(%\|#\d*\|<\a\+>\)\%(:[phtre]\)*$'
-        g:YYY ..= " -> '" .. expand(arg) .. "'"
         return expand(arg)
     endif
     return arg
 enddef
 
+# Return if we can find a local-root, and if so return the root
+# as well as whether a fossil --chdir argument is needed. If no
+# local-root can be found, return ['', v:false]
+def FossilLocalRoot(): list<any>
+    var cmd = [exists('g:fossil_cmd') ? g:fossil_cmd : 'fossil']
+    var rootpat = '^\%(.*\n\)\=local-root: *\(.\{-\}\)\n.*'
+    var chdir_dir = expand('%:p:h')
+    var chdir_args = ['--chdir', shellescape(chdir_dir)]
+    var chdir_txt = system(join(cmd + chdir_args + ['info'], ' '))
+    if v:shell_error == 0 && chdir_txt =~# rootpat
+        var chdir_root = substitute(chdir_txt, rootpat, '\1', '')
+        var cur_txt = system(join(cmd + ['info'], ' '))
+        if v:shell_error == 0 && cur_txt =~# rootpat
+            var cur_root = substitute(cur_txt, rootpat, '\1', '')
+            if cur_root == chdir_root
+                return [cur_root, v:false]
+            endif
+        endif
+        return [chdir_root, v:true]
+    endif
+    return ['', v:false]
+enddef
+
 # Build a fossil command
 def BuildFossilCommand(arglist: list<string>, expand: bool): list<string>
-    var cmd = ['fossil']
-    if exists('g:fossil_cmd')
-        cmd = [g:fossil_cmd]
-    endif
+    var cmd = [exists('g:fossil_cmd') ? g:fossil_cmd : 'fossil']
     var fsl_dir = getcwd()
-    # If both g:fossil_cmd and b:fossil_cmd exists, we've already been here
-    if exists('g:fossil_altroot') && !exists("b:fossil_cmd")
-        var has_chdir = v:false
+    # If both g:fossil_cmd and b:fossil_cmdline exists, we've already
+    # done an :lcd, except if the past command included --chdir.
+    if (exists('g:fossil_local_root')
+            && !(exists("b:fossil_cmdline") && b:fossil_cmdline =~# ' --chdir[ =]'))
+        var check_root = v:true
         for arg in arglist
             if arg =~# '^--chdir%\(=.*\)\=$'
-                has_chdir = v:true
+                check_root = v:false
             endif
         endfor
-        if !has_chdir
-            var rootpat = '^\%(.*\n\)\=local-root: *\(.\{-\}\)\n.*'
-            var cur_dir = fsl_dir
-            var chdir_dir = expand('%:p:h')
-            fsl_dir = ''
-            var chdir_args = ['--chdir', shellescape(chdir_dir)]
-            var chdir_txt = system(join(cmd + chdir_args + ['info'], ' '))
-            if v:shell_error == 0 && chdir_txt =~# rootpat
-                var chdir_root = substitute(chdir_txt, rootpat, '\1', '')
-                fsl_dir = chdir_root
-                var cur_txt = system(join(cmd + ['info'], ' '))
-                if v:shell_error == 0 && cur_txt =~# rootpat
-                    var cur_root = substitute(cur_txt, rootpat, '\1', '')
-                    if cur_root == chdir_root
-                        fsl_dir = cur_dir
-                    endif
-                endif
-            endif
-            if empty(fsl_dir)
+        if check_root
+            var [local_root, need_chdir] = FossilLocalRoot()
+            if empty(local_root)
                 echohl Error
-                echomsg 'Could not find local-root (g:fossil_altroot is set)'
+                echomsg 'Could not find local-root (g:fossil_local_root is set)'
+            elseif need_chdir
+                fsl_dir = local_root
+                cmd += ['--chdir', shellescape(fsl_dir)]
             endif
         endif
     endif
-    g:YYY = 'EXPAND: ' .. expand
     var args = expand ? map(arglist, function('ExpandArg')) : arglist
     return [fsl_dir, join(cmd + args, ' ')]
 enddef

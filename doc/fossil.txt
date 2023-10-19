@@ -41,7 +41,7 @@ Commands                                                     *fossil-commands*
         After creating the temporary buffer, the full command line is saved
         as `b:fossil_cmdline` and the first argument as `b:fossil_cmd`.
         The current directory is set using |:lcd| for any future |:FRefresh|.
-        The default is to use |getcwd()|, but see |g:fossil_altroot|.
+        The default is to use |getcwd()|, but see |g:fossil_local_root|.
 
 :[{mods}]CFossil[!] [{arguments}]                                   *:CFossil*
         Capture version of |:Fossil|; buffer created using ':enew'.
@@ -91,7 +91,7 @@ NOTE: The lists of options are auto generated from `fossil help -a -v`.
 ----------------------------------------------------------------------------
 Plugin variables                                            *fossil-variables*
 
-                                                            *g:fossil_altroot*
+                                                         *g:fossil_local_root*
 If set, use `fossil info` to find the local-root for the current buffer and
 compare with the local-root for the current directory:
 
