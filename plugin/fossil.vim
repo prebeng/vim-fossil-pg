@@ -1179,11 +1179,13 @@ def CaptureFossilOutput(new_cmd: string, mods: string, bang: string,
         if !empty(mods)
             cmd = mods .. ' ' .. cmd
         endif
+        # NOTE: The bufname needs to escape the [ and ] for unknown reasons.
+        #       If not, '[fossil status -v]' shows as jsut 'x'.
         var bufidx = 0
-        var bufname = '[' .. fslcmd .. ']'
+        var bufname = '\[' .. fslcmd .. '\]'
         while bufname->bufexists()
             ++bufidx
-            bufname = '[' .. bufidx .. ':' .. fslcmd .. ']'
+            bufname = '\[' .. bufidx .. ':' .. fslcmd .. '\]'
         endwhile
         if cmd =~ 'enew$'
             # No filename allowed, but hopefully status line updates are OK
