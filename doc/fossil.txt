@@ -1,4 +1,4 @@
-*fossil.txt*    Fossil plugin for vim.  Last change: 2023 Oct 15
+*fossil.txt*    Fossil plugin for vim.  Last change: 2023 Oct 22
 
 Maintainer: Preben Guldberg <preben@guldberg.org>
 License:    MIT, see |fossil-plugin-license|.
@@ -11,6 +11,10 @@ be inserted in the current buffer (see |:RFossil|).
 
 Additional commands can be defined, e.g. `:Fdiff`, or `:Fstatus`, using
 the |g:fossil_sub_cmds| variable.
+
+The |FossilLookupInfo()| function can be used to lookup up information
+for the word or filename under the cursor, e.g. to map |CTRL-]| to
+open a new window with a timeline for a branch name.
 
 Please see |fossil-variables| for further customisation.
 
@@ -34,6 +38,7 @@ Commands                                                     *fossil-commands*
         When the buffer is no longer displayed in a window, the default is
         to wipe it, though this can be tuned with |g:fossil_bufhidden|.
 
+                                                                    *:Fossil!*
         When [!] is used, the command is run as an external command and the
         output is not captured.  See |:Rfossil| for inserting the output in
         the current buffer.
@@ -89,7 +94,89 @@ NOTE: The lists of options are auto generated from `fossil help -a -v`.
       sub commands is included.
 
 ----------------------------------------------------------------------------
+Functions                                                   *fossil-functions*
+
+                                                          *FossilLookupInfo()*
+FossilLookupInfo() identifies a user name, tag/branch name, hash or existing
+filename under the cursor and runs a |:Fossil| command to show the command.
+The default is to check for the following
+
+- Tag names that appear as 'tags: tagname, tag2'.
+- User names that appear as 'user: name'
+- Hash values of 10 or more hexadecimal characters. 
+- Filenames if they exists either relative to the current directory, or
+  if |g:fossil_local_root| is set, the file exists relative to local-root.
+
+The default is to look up information using the equivalent of:
+
+- file: :Fossil timeline -p <cfile>
+- hash: :Fossil info -v <cword>
+- tag:  :Fossil timeline -b <cword>
+- user: :Fossil timeline -u <cword>
+
+The <cword> is expanded before building the command line.  This is mainly
+done to include `-` in branch names for tags by default, though further
+customisation can be done by setting |g:fossil_iskeyword|.
+
+Which command to execute can be fine tuned using |g:fossil_info_config|.
+
+                                                               *fossil-CTRL-]*
+To remap |CTRL-]| for buffers with a |'filetype'| of `fossil`, use e.g.
+>
+    :au FileType fossil nmap <buffer> <C-]> :call g:FossilLookupInfo()<CR>
+<
+----------------------------------------------------------------------------
 Plugin variables                                            *fossil-variables*
+
+                                                          *g:fossil_bufhidden*
+If set, used for the |'bufhidden'| option for temporary buffers.
+
+                                                                *g:fossil_cmd*
+If set, use g:fossil_cmd instead of the default `fossil` to run commands.
+
+                                                        *g:fossil_info_config*
+If set, this controls which commands to run for identifiers under the
+cursor with |FossilLookupInfo()|.  The variable is a nested dictionary of
+commands and arguments to use for different types of identifiers, allowing
+for tuning per type of fossil output captured in the current buffer.
+
+The top level keys are 'file', 'hash', 'tag' and 'user' and the values are
+dictionaries where the keys are either:
+
+- 'default': used as the default for this type of keyword.
+- cmd: used if the key is equal to |b:fossil_cmd|.
+- /regexp/: used if |b:fossil_cmd| matches regexp.
+
+The values are dictinaries with the following keys:
+
+- 'cmd': The vim command to run, one of the |:Fossil| or |:Fossil!| commands.
+- 'args': The fossil command line arguments to use.
+
+The final command line is based on the 'cmd' and 'args' values with the
+keyword/filename appended.
+
+The following example configuration
+>
+    let g:fossil_info_config = {
+      \ 'user': { 'default': { 'cmd': 'Fossil!', 'args': 'user contact' } },
+      \ 'tags': { '/^time': { 'cmd': 'Fossil', 'args': 'branch ls' } },
+      \ }
+<
+would result in the following commands being run:
+
+1. All information for users is run as ':Fossil! user contact <cword>'.
+2. When the current buffer has `fossil timeline` information (b:fossil_cmd
+   starts with `time`), run ':Fossil branch ls <cword>'.
+3. All other information uses the defaults for |FossilLookupInfo()|.
+
+                                                          *g:fossil_iskeyword*
+If set, used to set |'iskeyword'| temporarily when looking up keywords
+with |FossilLookupInfo()|.  If not set, use `isk&vim` plus `-` (see |:set-&vim|).
+To also include e.g. `@` in user names, use e.g.
+>
+    :let g:fossil_iskeyword = '@,48-57,_,192-255,-,@-@'
+>
+See |'iskeyword'| and |'isfname'| for more information on the syntax.
 
                                                          *g:fossil_local_root*
 If set, use `fossil info` to find the local-root for the current buffer and
@@ -99,12 +186,6 @@ compare with the local-root for the current directory:
 2. If there is no local-root for the current directory, or if it differs
    from local-root for the current buffer, |:lcd| to the buffers local-root.
 3. Otherwise, |:lcd| is set to |getcwd()| of the current buffer.
-
-                                                          *g:fossil_bufhidden*
-If set, used for the |'bufhidden'| option for temporary buffers.
-
-                                                                *g:fossil_cmd*
-If set, use g:fossil_cmd instead of the default `fossil` to run commands.
 
                                                             *g:fossil_new_cmd*
 The value of `g:fossil_new_cmd` is used to control how |:Fossil| opens the

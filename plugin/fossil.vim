@@ -1,6 +1,6 @@
 " Vim plugin for interacting with Fossil (https://fossil-scm.org).
 " Maintainer:	Preben Guldberg <preben@guldberg.org>
-" Last Change:	2023 Oct 16
+" Last Change:	2023 Oct 22
 " License:      MIT
 
 vim9script
@@ -1087,21 +1087,23 @@ enddef
 # as well as whether a fossil --chdir argument is needed. If no
 # local-root can be found, return ['', v:false]
 def FossilLocalRoot(): list<any>
-    var cmd = [exists('g:fossil_cmd') ? g:fossil_cmd : 'fossil']
-    var rootpat = '^\%(.*\n\)\=local-root: *\(.\{-\}\)\n.*'
-    var chdir_dir = expand('%:p:h')
-    var chdir_args = ['--chdir', shellescape(chdir_dir)]
-    var chdir_txt = system(join(cmd + chdir_args + ['info'], ' '))
-    if v:shell_error == 0 && chdir_txt =~# rootpat
-        var chdir_root = substitute(chdir_txt, rootpat, '\1', '')
-        var cur_txt = system(join(cmd + ['info'], ' '))
-        if v:shell_error == 0 && cur_txt =~# rootpat
-            var cur_root = substitute(cur_txt, rootpat, '\1', '')
-            if cur_root == chdir_root
-                return [cur_root, v:false]
+    if exists('g:fossil_local_root')
+        var cmd = [exists('g:fossil_cmd') ? g:fossil_cmd : 'fossil']
+        var rootpat = '^\%(.*\n\)\=local-root: *\(.\{-\}\)\n.*'
+        var chdir_dir = expand('%:p:h')
+        var chdir_args = ['--chdir', shellescape(chdir_dir)]
+        var chdir_txt = system(join(cmd + chdir_args + ['info'], ' '))
+        if v:shell_error == 0 && chdir_txt =~# rootpat
+            var chdir_root = substitute(chdir_txt, rootpat, '\1', '')
+            var cur_txt = system(join(cmd + ['info'], ' '))
+            if v:shell_error == 0 && cur_txt =~# rootpat
+                var cur_root = substitute(cur_txt, rootpat, '\1', '')
+                if cur_root == chdir_root
+                    return [cur_root, v:false]
+                endif
             endif
+            return [chdir_root, v:true]
         endif
-        return [chdir_root, v:true]
     endif
     return ['', v:false]
 enddef
@@ -1179,8 +1181,7 @@ def CaptureFossilOutput(new_cmd: string, mods: string, bang: string,
         if !empty(mods)
             cmd = mods .. ' ' .. cmd
         endif
-        # NOTE: The bufname needs to escape the [ and ] for unknown reasons.
-        #       If not, '[fossil status -v]' shows as jsut 'x'.
+        # NOTE: The bufname needs to escape the [ and ] to avoid globbing.
         var bufidx = 0
         var bufname = '\[' .. fslcmd .. '\]'
         while bufname->bufexists()
@@ -1366,3 +1367,117 @@ command -bar FRefresh call ReRunCommand()
 if WantShortCommand('FR')
     command -bar FR call ReRunCommand()
 endif
+
+#
+# Jump to definition
+#
+
+# Below, path names starting with / is assumed. For Windows, a full path with
+# drive letter is highly unlikely to be matched within a repo anyway.
+def FossilGetKeyword(): dict<string>
+    var isk = &isk
+    if exists('g:fossil_iskeyword')
+        exec ':set isk=' .. g:fossil_iskeyword
+    else
+        set isk&vim
+        set isk+=-
+    endif
+    var cword = expand('<cword>')
+    var cfile = expand('<cfile>')
+    &isk = isk
+    var type = ''
+    var val = ''
+    var col = getpos('.')[2]
+    var line = getline('.')
+    # This pattern, allowing for space before <cword> is compatible with
+    # using <C-]> on whitespace before a tag.
+    if line =~# '\<tags:\%( \+\k\+,\)*\%<' .. (col + 1) .. 'c \+\k\+\>\%>' .. col .. 'c'
+        val = cword
+        type = 'tag'
+    elseif line =~# '\<user:\%<' .. (col + 1) .. 'c \+\k\+\>\%>' .. col .. 'c'
+        val = cword
+        type = 'user'
+    elseif line =~# '\%<' .. (col + 1) .. 'c\s*\<\x\{10,\}\>\%>' .. col .. 'c'
+        val = cword
+        type = 'hash'
+    elseif cfile =~ '^[^/]'
+        # This should be the last elseif as we branch further
+        var file = ''
+        if exists('g:fossil_local_root')
+            var [local_root, need_chdir] = FossilLocalRoot()
+            if !empty(local_root)
+                if !need_chdir && filereadable(cfile)
+                    file = cfile
+                elseif filereadable(local_root .. '/' .. file)
+                    file = local_root .. '/' .. file
+                endif
+            endif
+        elseif filereadable(cfile)
+            file = cfile
+        endif
+        if !empty(file)
+            val = file
+            type = 'file'
+        endif
+    endif
+    if !empty(type)
+        return { 'tag': val, 'type': type }
+    endif
+    return {}
+enddef
+
+var InfoCmdConfig = {
+    'file': 'Fossil timeline -p',
+    'hash': 'Fossil info -v',
+    'tag': 'Fossil timeline -b',
+    'user': 'Fossil timeline -u',
+}
+
+def InfoCmd(type: string, tag: string): string
+    if exists('g:fossil_info_config') && has_key(g:fossil_info_config, type)
+        var config = g:fossil_info_config[type]
+        var cmd_key = has_key(config, 'default') ? 'default' : ''
+        var fslcmd = exists('b:fossil_cmd') ? b:fossil_cmd : ''
+        if empty(fslcmd) && expand('%:t') =~# '^ci-comment-\x\+.txt$'
+            fslcmd = 'commit'
+        endif
+        if has_key(config, fslcmd)
+            cmd_key = fslcmd
+        else
+            for pat in sort(filter(keys(config), 'v:val =~ "^/.*/$"'))
+                if fslcmd =~ pat[1 : -2]
+                    cmd_key = pat
+                    break
+                endif
+            endfor
+        endif
+        if !empty(cmd_key)
+            var cmd_dict = config[cmd_key]
+            for [key, pat] in [['cmd', '^:\=[CSV]\=Fossil!\=$'], ['args', '.']]
+                var msg = ''
+                if !has_key(cmd_dict, key)
+                    msg = 'Missing key ''' .. key .. ''''
+                elseif cmd_dict[key] !~ pat
+                    msg = 'Value must match /' .. pat .. '/'
+                    msg ..= ', got ''' .. cmd_dict[key] .. ''''
+                endif
+                if !empty(msg)
+                    echohl Error
+                    echomsg 'g:fossil_info_config[''' .. type .. ''']: ' .. msg
+                endif
+            endfor
+            return join([cmd_dict['cmd'], cmd_dict['args'], tag], ' ')
+        endif
+    endif
+    return InfoCmdConfig[type] .. ' ' .. tag
+enddef
+
+def g:FossilLookupInfo()
+    var tt = FossilGetKeyword()
+    if !empty(tt)
+        exec ':' .. InfoCmd(tt['type'], tt['tag'])
+    else
+        echohl Error
+        echo 'Did not find fossil information to jump to'
+    endif
+enddef
