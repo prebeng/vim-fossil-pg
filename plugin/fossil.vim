@@ -1158,7 +1158,6 @@ enddef
 def CaptureFossilOutput(new_cmd: string, mods: string, bang: string,
                         ...args: list<string>)
     var [cwd, fslcmd] = BuildFossilCommand(args, empty(bang))
-    g:XXX = 'bang: ' .. bang .. "\ncwd: " .. cwd .. "\nfslcmd" .. fslcmd
     if empty(cwd)
         return
     elseif bang == '!'
@@ -1309,7 +1308,8 @@ def SetupFossilCommands(fslcmd: string = '')
             '    if has_key(FossilArgs, "' .. fslcmd .. '") && A[: 0] == "-"',
             '        return ListCandidates(' .. fa .. ', A)',
             '    endif',
-            '    return glob(A .. "*", 0, 1, 1)',
+            '    var files = glob(A .. "*", 0, 1, 1)',
+            '    return map(files, ''isdirectory(v:val) ? v:val .. "/" : v:val'')',
             'enddef',
         ]
         exec join(commcmd, "\n")
