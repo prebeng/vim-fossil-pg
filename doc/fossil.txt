@@ -1,4 +1,4 @@
-*fossil.txt*    Fossil plugin for vim.  Last change: 2023 Oct 22
+*fossil.txt*    Fossil plugin for vim.  Last change: 2023 Oct 25
 
 Maintainer: Preben Guldberg <preben@guldberg.org>
 License:    MIT, see |fossil-plugin-license|.
@@ -150,7 +150,8 @@ dictionaries where the keys are either:
 The values are dictinaries with the following keys:
 
 - 'cmd': The vim command to run, one of the |:Fossil| or |:Fossil!| commands.
-- 'args': The fossil command line arguments to use.
+         If omitted, the default is |:Fossil|.
+- 'args': The fossil command line arguments to use (mandatory).
 
 The final command line is based on the 'cmd' and 'args' values with the
 keyword/filename appended.
@@ -159,7 +160,8 @@ The following example configuration
 >
     let g:fossil_info_config = {
       \ 'user': { 'default': { 'cmd': 'Fossil!', 'args': 'user contact' } },
-      \ 'tags': { '/^time': { 'cmd': 'Fossil', 'args': 'branch ls' } },
+      \ 'tags': { '/^time': { 'args': 'branch ls' } },
+      \ 'hash': { 'info': { 'args': 'diff --ci' } },
       \ }
 <
 would result in the following commands being run:

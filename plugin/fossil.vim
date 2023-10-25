@@ -1,6 +1,6 @@
 " Vim plugin for interacting with Fossil (https://fossil-scm.org).
 " Maintainer:	Preben Guldberg <preben@guldberg.org>
-" Last Change:	2023 Oct 22
+" Last Change:	2023 Oct 25
 " License:      MIT
 
 vim9script
@@ -1453,20 +1453,25 @@ def InfoCmd(type: string, tag: string): string
         endif
         if !empty(cmd_key)
             var cmd_dict = config[cmd_key]
+            var cmd = 'Fossil'
+            var msg = ''
             for [key, pat] in [['cmd', '^:\=[CSV]\=Fossil!\=$'], ['args', '.']]
-                var msg = ''
                 if !has_key(cmd_dict, key)
-                    msg = 'Missing key ''' .. key .. ''''
+                    if key !=# 'cmd'
+                        msg = 'Missing key ''' .. key .. ''''
+                    endif
                 elseif cmd_dict[key] !~ pat
                     msg = 'Value must match /' .. pat .. '/'
                     msg ..= ', got ''' .. cmd_dict[key] .. ''''
+                elseif key ==# 'cmd'
+                    cmd = cmd_dict['cmd']
                 endif
                 if !empty(msg)
                     echohl Error
                     echomsg 'g:fossil_info_config[''' .. type .. ''']: ' .. msg
                 endif
             endfor
-            return join([cmd_dict['cmd'], cmd_dict['args'], tag], ' ')
+            return join([cmd, cmd_dict['args'], tag], ' ')
         endif
     endif
     return InfoCmdConfig[type] .. ' ' .. tag
